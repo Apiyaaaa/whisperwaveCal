@@ -58,6 +58,7 @@ def get_news_by_date(start_date, end_date):
             vector=[0.1] * 1536, top_k=1000, include_metadata=True, include_values=True, filter={
                 'date': {'$gte': start_date, '$lte': end_date}
             })
+        
         if not pinecone_query['matches']:
             return None
     except Exception as e:
@@ -119,9 +120,9 @@ def get_news_by_vectors(centers, limit=100, period='daily'):
     return res
 
 
-def best_n_clusters(matrix, n_clusters):
+def best_n_clusters(matrix, n_clusters, min_clusters=2):
     scores = []
-    for n in range(2, n_clusters):
+    for n in range(min_clusters, n_clusters):
         kmeans = KMeans(n_clusters=n, random_state=42,
                         n_init='auto').fit(matrix)
         score = silhouette_score(matrix, kmeans.labels_)
@@ -130,7 +131,7 @@ def best_n_clusters(matrix, n_clusters):
 
 
 def get_cluster(matrix, max_n_clusters=10):
-    n_clusters = best_n_clusters(matrix, max_n_clusters)
+    n_clusters = best_n_clusters(matrix, max_n_clusters, 5)
     kmeans = KMeans(n_clusters=n_clusters, random_state=0,
                     n_init='auto').fit(matrix)
     centers = kmeans.cluster_centers_
